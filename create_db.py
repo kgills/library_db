@@ -85,19 +85,53 @@ numrows = cursor.rowcount
 # Get and display one row at a time
 for x in range(0, numrows):
     row = cursor.fetchone()
-    print row[0], "|", row[1], "|", row[2], "|", row[3], "|", row[4]
+    # print row[0], "|", row[1], "|", row[2], "|", row[3], "|", row[4]
 
-
-
-# Add the borrowers
 
 # Create the Authors table
+cursor.execute("CREATE TABLE AUTHORS ( Author_id bigint NOT NULL, Name varchar(100) NOT NULL, PRIMARY KEY (Author_id))")
+
+# Create the Book table
+cursor.execute("CREATE TABLE BOOK ( Isbn bigint NOT NULL, Title varchar(250) NOT NULL, PRIMARY KEY (Isbn))")
+
+# Create the Book_authors table
+cursor.execute("CREATE TABLE BOOK_AUTHORS ( Author_id bigint NOT NULL, Isbn bigint NOT NULL, PRIMARY KEY (Author_id))")
+
+# Read the entries from the books CSV
+with open(book_file, 'rb') as csvfile:
+	reader = csv.reader(csvfile, delimiter='\t')
+	for row in reader:
+		print row[0]+" | "+row[1]+" | "+row[2]+" | "+row[3]+" | "+row[4]+" | "+row[5]+" | "+row[6]
+
+		# Use ISBN13 for the book ISBN
+		isbn = row[1]
+
+		# Title, insert an escape character for ''
+		title = row[2].replace("'", "\\'")
+
+		# Get the authors
+		authors = row[3].split(",")
+		print "Authors = "+"|".join(authors)
+
+		# print "isbn = "+isbn+" title = "+title
+
+		cursor.execute("INSERT INTO BOOK VALUES('"+isbn+"', '"+title+"')")
+
+
+# Commit changes
+db.commit()
+
+# Get the number of rows in the resultset
+cursor.execute("SELECT * FROM BOOK")
+numrows = cursor.rowcount
+
+# Get and display one row at a time
+for x in range(0, numrows):
+    row = cursor.fetchone()
+    # print row[0], "|", row[1]
 
 # Add authors
 
-# Create the Book table
-
-# Add books
 
 # Create the book_autors table
 
