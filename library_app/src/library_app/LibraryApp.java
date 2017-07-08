@@ -6,11 +6,24 @@
 
 package library_app;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author kgills
  */
 public class LibraryApp extends javax.swing.JFrame {
+    
+    private Connection connect = null;
+    private Statement statement = null;
 
     /**
      * Creates new form LibraryApp
@@ -18,6 +31,28 @@ public class LibraryApp extends javax.swing.JFrame {
     public LibraryApp() {
         initComponents();
         this.setTitle("Library App");
+        
+        try {
+            System.out.println("Opening localhost/library database");
+            // Import the database, assuming that it was already populated
+            Class.forName("com.mysql.jdbc.Driver");
+            connect = DriverManager.getConnection("jdbc:mysql://localhost/library?"
+                                + "user=root&password=asdflkj&"
+                                + "useSSL=false");
+            
+            // Statements allow to issue SQL queries to the database
+            statement = connect.createStatement();
+            
+        } catch (Exception ex) {
+            Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        if(connect == null) {
+            System.out.println("Error openening localhost/library database");
+            System.exit(1);
+        } else {
+            System.out.println("Database Open!");
+        }
     }
 
     /**
@@ -280,6 +315,11 @@ public class LibraryApp extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         SearchButton.setText("Search");
+        SearchButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                SearchButtonActionPerformed(evt);
+            }
+        });
 
         FileMenu.setText("File");
 
@@ -356,7 +396,8 @@ public class LibraryApp extends javax.swing.JFrame {
     }//GEN-LAST:event_PayFineActionPerformed
 
     private void ExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExitActionPerformed
-        // TODO add your handling code here:
+        // Close the DB connection
+        System.exit(0);
     }//GEN-LAST:event_ExitActionPerformed
 
     private void NewUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NewUserActionPerformed
@@ -385,15 +426,50 @@ public class LibraryApp extends javax.swing.JFrame {
         CheckInDialog.setVisible(true);
     }//GEN-LAST:event_CheckInButtonActionPerformed
 
+    private void SearchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchButtonActionPerformed
+        
+        ResultSet authorResultSet = null;
+        
+        try {
+            // Query the database for whatever is in the search bar
+            String query = "SELECT Author_id "
+                     + "FROM AUTHORS "
+                     + "WHERE LOWER(AUTHORS.name) LIKE '%"+SearchField.getText()+"%';";
+            System.out.println(query);
+             
+             authorResultSet = statement.executeQuery(query);
+        } catch (SQLException ex) {
+            Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        if(authorResultSet == null) {
+            System.out.println("No results");
+        } else {
+            try {
+                ResultSetMetaData rsmd = authorResultSet.getMetaData();
+                int columnsNumber = rsmd.getColumnCount();
+                while (authorResultSet.next()) {
+                    for (int i = 1; i <= columnsNumber; i++) {
+                        if (i > 1) System.out.print(",  ");
+                        String columnValue = authorResultSet.getString(i);
+                        System.out.print(columnValue + " " + rsmd.getColumnName(i));
+                    }
+                    System.out.println("");
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    }//GEN-LAST:event_SearchButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
         
+        
         System.out.println("Staring Library Database Application");
-        
-        // Import the database, assuming that it was already populated
-        
         
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
