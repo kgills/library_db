@@ -389,7 +389,7 @@ public class LibraryApp extends javax.swing.JFrame {
 
         CheckInISBNText.setText("ISBN: ");
 
-        CheckInButton.setText("Check Out");
+        CheckInButton.setText("Check In");
         CheckInButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 CheckInButtonActionPerformed(evt);
@@ -665,6 +665,22 @@ public class LibraryApp extends javax.swing.JFrame {
     }//GEN-LAST:event_CreateUserButtonActionPerformed
 
     private void CheckInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckInButtonActionPerformed
+        
+        // Update the BOOK_LOANS table
+        String update = "UPDATE BOOK_LOANS "
+                +"SET Date_in =  NOW() "
+                +"WHERE Isbn = "+CheckInISBNField.getText()
+                +"AND Card_id = "+CheckInUserIDField.getText()+";";
+        System.out.println(update);
+        
+        try {
+            statement0.execute(update);
+        } catch (SQLException ex) {
+            Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+            userID-=1;
+            NewUserStatus.setText("Failed! Can't find ISBN and Card_ID match");
+        }
+        
         CheckInDialog.pack();
         CheckInDialog.setTitle("Check In Status");
         CheckInDialog.setVisible(true);

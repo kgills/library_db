@@ -336,7 +336,7 @@
         </Component>
         <Component class="javax.swing.JButton" name="CheckInButton">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Check Out"/>
+            <Property name="text" type="java.lang.String" value="Check In"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="CheckInButtonActionPerformed"/>
