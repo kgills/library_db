@@ -13,8 +13,60 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+
+class SearchEntry {
+    String ISBN;
+    String author;
+    String title;
+    String dueDate;
+    
+    public SearchEntry(String ISBN, String author, String title, String dueDate) {
+        this.ISBN = ISBN;
+        this.author = author;
+        this.title = title;
+        this.dueDate = dueDate;
+    }
+    
+    public int compare(SearchEntry o1, SearchEntry o2) {
+        if(o1.ISBN.equals(o2.ISBN) &&
+          o1.author.equals(o2.author) &&
+          o1.title.equals(o2.title) &&
+          o1.dueDate.equals(o2.dueDate)) {
+            return 1;
+        }
+        
+        return 0;
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        
+        SearchEntry obj = (SearchEntry)o;
+        
+        return (this.ISBN.equals(obj.ISBN) &&
+          this.author.equals(obj.author) &&
+          this.title.equals(obj.title) &&
+          this.dueDate.equals(obj.dueDate));
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 71 * hash + Objects.hashCode(this.ISBN);
+        hash = 71 * hash + Objects.hashCode(this.author);
+        hash = 71 * hash + Objects.hashCode(this.title);
+        hash = 71 * hash + Objects.hashCode(this.dueDate);
+        return hash;
+    }
+}
 
 /**
  *
@@ -23,7 +75,9 @@ import java.util.logging.Logger;
 public class LibraryApp extends javax.swing.JFrame {
     
     private Connection connect = null;
-    private Statement statement = null;
+    private Statement statement0 = null;
+    private Statement statement1 = null;
+    private Statement statement2 = null;
 
     /**
      * Creates new form LibraryApp
@@ -41,7 +95,9 @@ public class LibraryApp extends javax.swing.JFrame {
                                 + "useSSL=false");
             
             // Statements allow to issue SQL queries to the database
-            statement = connect.createStatement();
+            statement0 = connect.createStatement();
+            statement1 = connect.createStatement();
+            statement2 = connect.createStatement();
             
         } catch (Exception ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
@@ -94,14 +150,24 @@ public class LibraryApp extends javax.swing.JFrame {
         CheckInButton = new javax.swing.JButton();
         CheckInDialog = new javax.swing.JDialog();
         CheckInDialogText = new javax.swing.JLabel();
+        CheckOutFrame = new javax.swing.JFrame();
+        CheckOutUserIDText = new javax.swing.JLabel();
+        CheckOutUserIDField = new javax.swing.JTextField();
+        CheckOutISBNText = new javax.swing.JLabel();
+        CheckOutISBNField = new javax.swing.JTextField();
+        CheckOutButton = new javax.swing.JButton();
+        CheckOutDialog = new javax.swing.JDialog();
+        CheckOutDialogText = new javax.swing.JLabel();
         SearchButton = new javax.swing.JButton();
         SearchField = new javax.swing.JTextField();
         SearchResults = new javax.swing.JScrollPane();
+        SearchResultsText = new javax.swing.JTextArea();
         MenuBar = new javax.swing.JMenuBar();
         FileMenu = new javax.swing.JMenu();
         PayFine = new javax.swing.JMenuItem();
         NewUser = new javax.swing.JMenuItem();
         CheckIn = new javax.swing.JMenuItem();
+        CheckOut = new javax.swing.JMenuItem();
         Exit = new javax.swing.JMenuItem();
 
         NameText.setText("Name");
@@ -250,7 +316,7 @@ public class LibraryApp extends javax.swing.JFrame {
 
         CheckInISBNText.setText("ISBN: ");
 
-        CheckInButton.setText("Check In");
+        CheckInButton.setText("Check Out");
         CheckInButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 CheckInButtonActionPerformed(evt);
@@ -312,6 +378,72 @@ public class LibraryApp extends javax.swing.JFrame {
                 .addContainerGap(46, Short.MAX_VALUE))
         );
 
+        CheckOutUserIDText.setText("UserID:");
+
+        CheckOutISBNText.setText("ISBN: ");
+
+        CheckOutButton.setText("Check Out");
+        CheckOutButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                CheckOutButtonActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout CheckOutFrameLayout = new javax.swing.GroupLayout(CheckOutFrame.getContentPane());
+        CheckOutFrame.getContentPane().setLayout(CheckOutFrameLayout);
+        CheckOutFrameLayout.setHorizontalGroup(
+            CheckOutFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(CheckOutFrameLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(CheckOutFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(CheckOutFrameLayout.createSequentialGroup()
+                        .addComponent(CheckOutButton)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(CheckOutFrameLayout.createSequentialGroup()
+                        .addGroup(CheckOutFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(CheckOutUserIDText)
+                            .addComponent(CheckOutISBNText))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(CheckOutFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(CheckOutISBNField, javax.swing.GroupLayout.DEFAULT_SIZE, 321, Short.MAX_VALUE)
+                            .addComponent(CheckOutUserIDField))))
+                .addContainerGap())
+        );
+        CheckOutFrameLayout.setVerticalGroup(
+            CheckOutFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(CheckOutFrameLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(CheckOutFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CheckOutUserIDText)
+                    .addComponent(CheckOutUserIDField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(CheckOutFrameLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CheckOutISBNText)
+                    .addComponent(CheckOutISBNField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(CheckOutButton)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        CheckOutDialogText.setText("Error Checking Out");
+
+        javax.swing.GroupLayout CheckOutDialogLayout = new javax.swing.GroupLayout(CheckOutDialog.getContentPane());
+        CheckOutDialog.getContentPane().setLayout(CheckOutDialogLayout);
+        CheckOutDialogLayout.setHorizontalGroup(
+            CheckOutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(CheckOutDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(CheckOutDialogText)
+                .addContainerGap(71, Short.MAX_VALUE))
+        );
+        CheckOutDialogLayout.setVerticalGroup(
+            CheckOutDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(CheckOutDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(CheckOutDialogText)
+                .addContainerGap(46, Short.MAX_VALUE))
+        );
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         SearchButton.setText("Search");
@@ -320,6 +452,10 @@ public class LibraryApp extends javax.swing.JFrame {
                 SearchButtonActionPerformed(evt);
             }
         });
+
+        SearchResultsText.setColumns(20);
+        SearchResultsText.setRows(5);
+        SearchResults.setViewportView(SearchResultsText);
 
         FileMenu.setText("File");
 
@@ -347,6 +483,14 @@ public class LibraryApp extends javax.swing.JFrame {
         });
         FileMenu.add(CheckIn);
 
+        CheckOut.setText("Check Out");
+        CheckOut.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                CheckOutActionPerformed(evt);
+            }
+        });
+        FileMenu.add(CheckOut);
+
         Exit.setText("Exit");
         Exit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -370,7 +514,7 @@ public class LibraryApp extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(SearchButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(SearchField, javax.swing.GroupLayout.DEFAULT_SIZE, 416, Short.MAX_VALUE)))
+                        .addComponent(SearchField, javax.swing.GroupLayout.DEFAULT_SIZE, 518, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -381,7 +525,7 @@ public class LibraryApp extends javax.swing.JFrame {
                     .addComponent(SearchButton)
                     .addComponent(SearchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(SearchResults, javax.swing.GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE)
+                .addComponent(SearchResults, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -428,40 +572,211 @@ public class LibraryApp extends javax.swing.JFrame {
 
     private void SearchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchButtonActionPerformed
         
-        ResultSet authorResultSet = null;
+        ResultSet bookResultSet;
+        ResultSet bookAuthorsResultSet;
+        ResultSet authorsResultSet;
+        ResultSet bookLoansResultSet;
+        String query;
+        
+        Set <SearchEntry> searchResults;
+        searchResults = new HashSet<>();
+        String textResults = "";
         
         try {
-            // Query the database for whatever is in the search bar
-            String query = "SELECT Author_id "
+            // Query the database for authors that match what's in the serach bar
+            query = "SELECT * "
                      + "FROM AUTHORS "
                      + "WHERE LOWER(AUTHORS.name) LIKE '%"+SearchField.getText()+"%';";
             System.out.println(query);
              
-             authorResultSet = statement.executeQuery(query);
+            authorsResultSet = statement0.executeQuery(query);
+            
+            while (authorsResultSet.next()) {
+
+                String authorID = authorsResultSet.getString(1);
+                String authorName = authorsResultSet.getString(2);
+                System.out.println("AuthorId: "+authorID+" AuthorName: "+authorName);
+
+                // Search book_authors for the ISBNs  by this author
+                query = "SELECT Isbn "
+                         + "FROM BOOK_AUTHORS "
+                         + "WHERE Author_id='"+authorID+"';";
+                System.out.println(query);                                    
+
+                bookAuthorsResultSet = statement1.executeQuery(query);
+
+                while (bookAuthorsResultSet.next()) {
+
+                    String ISBN = bookAuthorsResultSet.getString(1);
+                    System.out.println("ISBN: "+ISBN);
+
+                    // Search books for the titles corresponding to this ISBN
+                    query = "SELECT Title "
+                             + "FROM BOOK "
+                             + "WHERE Isbn='"+ISBN+"';";
+                    System.out.println(query);
+
+                    bookResultSet = statement2.executeQuery(query);
+
+                    while (bookResultSet.next()) {
+                        String title = bookResultSet.getString(1);
+                        System.out.println("Title: "+title);
+
+                        // Need to add the books to the search results
+                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
+                    }
+                    
+                    bookResultSet.close();
+                }
+                
+                bookAuthorsResultSet.close();
+            }
+             
+            authorsResultSet.close();
+            
+            // Query for books titles that match
+            query = "SELECT * "
+                     + "FROM BOOK "
+                     + "WHERE LOWER(BOOK.Title) LIKE '%"+SearchField.getText()+"%';";
+            System.out.println(query);
+             
+            bookResultSet = statement0.executeQuery(query);
+            
+            while (bookResultSet.next()) {
+
+                String ISBN = bookResultSet.getString(1);
+                String title = bookResultSet.getString(2);
+                System.out.println("ISBN: "+ISBN+" Title: "+title);
+
+                // Search book_authors for the Author_id from this book
+                query = "SELECT Author_id "
+                         + "FROM BOOK_AUTHORS "
+                         + "WHERE Isbn='"+ISBN+"';";
+                System.out.println(query);                                    
+
+                bookAuthorsResultSet = statement1.executeQuery(query);
+
+                while (bookAuthorsResultSet.next()) {
+
+                    String authorID = bookAuthorsResultSet.getString(1);
+                    System.out.println("authorID: "+authorID);
+
+                    // Search Authors for the author name corresponding to this author_id
+                    query = "SELECT Name "
+                             + "FROM AUTHORS "
+                             + "WHERE Author_id='"+authorID+"';";
+                    System.out.println(query);
+
+                    authorsResultSet = statement2.executeQuery(query);
+
+                    while (authorsResultSet.next()) {
+                        String authorName = authorsResultSet.getString(1);
+                        System.out.println("Author: "+authorName);
+
+                        // Need to add the books to the search results
+                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
+                    }
+                    
+                    authorsResultSet.close();
+                }
+                
+                bookAuthorsResultSet.close();
+            }
+            
+            bookResultSet.close();
+            
+            // Query for ISBNs that match
+            query = "SELECT Title "
+                     + "FROM BOOK "
+                     + "WHERE LOWER(BOOK.Isbn) LIKE '"+SearchField.getText()+"';";
+            System.out.println(query);
+             
+            bookResultSet = statement0.executeQuery(query);
+            
+            while (bookResultSet.next()) {
+
+                String ISBN = SearchField.getText();
+                String title = bookResultSet.getString(1);
+                System.out.println("ISBN: "+ISBN+" Title: "+title);
+
+                // Search book_authors for the Author_id from this book
+                query = "SELECT Author_id "
+                         + "FROM BOOK_AUTHORS "
+                         + "WHERE Isbn='"+ISBN+"';";
+                System.out.println(query);                                    
+
+                bookAuthorsResultSet = statement1.executeQuery(query);
+
+                while (bookAuthorsResultSet.next()) {
+
+                    String authorID = bookAuthorsResultSet.getString(1);
+                    System.out.println("authorID: "+authorID);
+
+                    // Search Authors for the author name corresponding to this author_id
+                    query = "SELECT Name "
+                             + "FROM AUTHORS "
+                             + "WHERE Author_id='"+authorID+"';";
+                    System.out.println(query);
+
+                    authorsResultSet = statement2.executeQuery(query);
+
+                    while (authorsResultSet.next()) {
+                        String authorName = authorsResultSet.getString(1);
+                        System.out.println("Author: "+authorName);
+
+                        // Need to add the books to the search results
+                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
+                    }
+                    
+                    authorsResultSet.close();
+                }
+                
+                bookAuthorsResultSet.close();
+            }
+            
+            bookResultSet.close();
+ 
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }        
         
-        if(authorResultSet == null) {
-            System.out.println("No results");
-        } else {
+        // Add the items to the textResults
+        for(SearchEntry entry :searchResults) {
+            
+            // Need to check if the books are checked out
+            query = "SELECT Due_date "
+                     + "FROM BOOK_LOANS "
+                     + "WHERE Isbn= '"+entry.ISBN+"';";
+            System.out.println(query);
             try {
-                ResultSetMetaData rsmd = authorResultSet.getMetaData();
-                int columnsNumber = rsmd.getColumnCount();
-                while (authorResultSet.next()) {
-                    for (int i = 1; i <= columnsNumber; i++) {
-                        if (i > 1) System.out.print(",  ");
-                        String columnValue = authorResultSet.getString(i);
-                        System.out.print(columnValue + " " + rsmd.getColumnName(i));
-                    }
-                    System.out.println("");
+                bookLoansResultSet = statement0.executeQuery(query);
+                while (bookLoansResultSet.next()) {
+                    String dueDate = bookLoansResultSet.getString(1);
+                    // TODO: Need to compare the due dates
+                    entry.dueDate = dueDate;
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
             }
+            
+
+            textResults += entry.ISBN + "  |  " +entry.author+"  |  "+
+                    entry.title+"  |  "+entry.dueDate+"\n";
         }
-        
+        SearchResultsText.setText(textResults);
     }//GEN-LAST:event_SearchButtonActionPerformed
+
+    private void CheckOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckOutButtonActionPerformed
+        CheckOutDialog.pack();
+        CheckOutDialog.setTitle("Check Out Status");
+        CheckOutDialog.setVisible(true);
+    }//GEN-LAST:event_CheckOutButtonActionPerformed
+
+    private void CheckOutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckOutActionPerformed
+        CheckOutFrame.pack();
+        CheckOutFrame.setTitle("Check Out");
+        CheckOutFrame.setVisible(true);
+    }//GEN-LAST:event_CheckOutActionPerformed
 
     /**
      * @param args the command line arguments
@@ -509,6 +824,15 @@ public class LibraryApp extends javax.swing.JFrame {
     private javax.swing.JLabel CheckInISBNText;
     private javax.swing.JTextField CheckInUserIDField;
     private javax.swing.JLabel CheckInUserIDText;
+    private javax.swing.JMenuItem CheckOut;
+    private javax.swing.JButton CheckOutButton;
+    private javax.swing.JDialog CheckOutDialog;
+    private javax.swing.JLabel CheckOutDialogText;
+    private javax.swing.JFrame CheckOutFrame;
+    private javax.swing.JTextField CheckOutISBNField;
+    private javax.swing.JLabel CheckOutISBNText;
+    private javax.swing.JTextField CheckOutUserIDField;
+    private javax.swing.JLabel CheckOutUserIDText;
     private javax.swing.JButton CreateUserButton;
     private javax.swing.JMenuItem Exit;
     private javax.swing.JMenu FileMenu;
@@ -536,6 +860,7 @@ public class LibraryApp extends javax.swing.JFrame {
     private javax.swing.JButton SearchButton;
     private javax.swing.JTextField SearchField;
     private javax.swing.JScrollPane SearchResults;
+    private javax.swing.JTextArea SearchResultsText;
     private javax.swing.JButton UpdateFinesButton;
     // End of variables declaration//GEN-END:variables
 }

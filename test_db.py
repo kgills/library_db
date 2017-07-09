@@ -93,9 +93,9 @@ cursor.execute("INSERT INTO BOOK VALUES('123456785', 'A short history of the uni
 
 cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('1', '123456789')")
 cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('1', '123456788')")
-cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('3', '123456785')")
-cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('2', '123456787')")
-cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('2', '123456786')")
+cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('2', '123456785')")
+cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('3', '123456787')")
+cursor.execute("INSERT INTO BOOK_AUTHORS VALUES('3', '123456786')")
 
 
 # Commit changes
