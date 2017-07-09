@@ -656,7 +656,7 @@ public class LibraryApp extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
             userID-=1;
-            NewUserStatus.setText("Failed to add User!");
+            NewUserStatus.setText("Failed! Can not have duplicate SSN");
         }
         
         NewUserDialog.pack();
