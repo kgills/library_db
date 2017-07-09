@@ -141,25 +141,32 @@
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="FinesScrollPane" max="32767" attributes="0"/>
                       <Group type="102" alignment="0" attributes="0">
-                          <Component id="FineBalanceButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="separate" max="-2" attributes="0"/>
-                          <Component id="FinePayButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="separate" max="-2" attributes="0"/>
-                          <Component id="UpdateFinesButton" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Group type="102" attributes="0">
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="FineUserIDText" alignment="0" min="-2" max="-2" attributes="0"/>
-                              <Component id="FinePayText" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Component id="FineBalanceText" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="FinesLoadIDText" alignment="0" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="FineUserIDField" alignment="0" max="32767" attributes="0"/>
-                              <Component id="FinePayField" max="32767" attributes="0"/>
+                              <Component id="FineUserIDField" alignment="0" pref="302" max="32767" attributes="0"/>
                               <Component id="FineBalanceField" alignment="0" max="32767" attributes="0"/>
+                              <Component id="FinesLoanIDField" alignment="0" max="32767" attributes="0"/>
                           </Group>
+                      </Group>
+                      <Group type="102" attributes="0">
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="102" attributes="0">
+                                  <Component id="FineBalanceButton" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Component id="FinePayButton" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                                  <Component id="UpdateFinesButton" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="FinesDescription" alignment="0" min="-2" max="-2" attributes="0"/>
+                          </Group>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -176,20 +183,24 @@
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="FinePayText" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="FinePayField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="FinesLoanIDField" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="FinesLoadIDText" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="FineBalanceButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="FinePayButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="UpdateFinesButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace type="separate" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="FineBalanceField" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="FineBalanceText" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" pref="26" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="FineBalanceButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="FinePayButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="UpdateFinesButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <Component id="FinesDescription" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="FinesScrollPane" min="-2" pref="151" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
@@ -200,6 +211,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Update Fines"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="UpdateFinesButtonActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="FineUserIDText">
           <Properties>
@@ -212,18 +226,17 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Balance"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="FineBalanceButtonActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JButton" name="FinePayButton">
           <Properties>
             <Property name="text" type="java.lang.String" value="Pay"/>
           </Properties>
-        </Component>
-        <Component class="javax.swing.JLabel" name="FinePayText">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Pay"/>
-          </Properties>
-        </Component>
-        <Component class="javax.swing.JTextField" name="FinePayField">
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="FinePayButtonActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="FineBalanceText">
           <Properties>
@@ -231,6 +244,30 @@
           </Properties>
         </Component>
         <Component class="javax.swing.JTextField" name="FineBalanceField">
+        </Component>
+        <Container class="javax.swing.JScrollPane" name="FinesScrollPane">
+
+          <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+          <SubComponents>
+            <Component class="javax.swing.JTextArea" name="FinesTextArea">
+              <Properties>
+                <Property name="columns" type="int" value="20"/>
+                <Property name="rows" type="int" value="5"/>
+              </Properties>
+            </Component>
+          </SubComponents>
+        </Container>
+        <Component class="javax.swing.JTextField" name="FinesLoanIDField">
+        </Component>
+        <Component class="javax.swing.JLabel" name="FinesLoadIDText">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="LoanID"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="FinesDescription">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="LoanID, ISBN, Due Date, Amount, Status"/>
+          </Properties>
         </Component>
       </SubComponents>
     </Container>
