@@ -80,7 +80,7 @@ public class LibraryApp extends javax.swing.JFrame {
 
     private long userID;
     private long loanID;
-    
+
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
 
     public static int daysBetween(Calendar endDate, Calendar startDate) {
@@ -408,6 +408,8 @@ public class LibraryApp extends javax.swing.JFrame {
         CheckOutButton = new javax.swing.JButton();
         CheckOutDialog = new javax.swing.JDialog();
         CheckOutDialogText = new javax.swing.JLabel();
+        FineDialog = new javax.swing.JDialog();
+        FineDialogText = new javax.swing.JLabel();
         SearchButton = new javax.swing.JButton();
         SearchField = new javax.swing.JTextField();
         SearchResults = new javax.swing.JScrollPane();
@@ -724,6 +726,25 @@ public class LibraryApp extends javax.swing.JFrame {
                 .addContainerGap(46, Short.MAX_VALUE))
         );
 
+        FineDialogText.setText("Error Paying Fine");
+
+        javax.swing.GroupLayout FineDialogLayout = new javax.swing.GroupLayout(FineDialog.getContentPane());
+        FineDialog.getContentPane().setLayout(FineDialogLayout);
+        FineDialogLayout.setHorizontalGroup(
+            FineDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(FineDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(FineDialogText)
+                .addContainerGap(89, Short.MAX_VALUE))
+        );
+        FineDialogLayout.setVerticalGroup(
+            FineDialogLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(FineDialogLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(FineDialogText)
+                .addContainerGap(46, Short.MAX_VALUE))
+        );
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
@@ -911,8 +932,10 @@ public class LibraryApp extends javax.swing.JFrame {
     private void CheckOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckOutButtonActionPerformed
 
         ResultSet bookLoansResultSet;
+        ResultSet bookLoansCountResultSet;
         String result = "";
-        String insert;
+        String insert = "";
+        String fine = "";
 
         // Search for this book in the Book_loans table
         String query = "SELECT Date_in, Date_out "
@@ -922,42 +945,61 @@ public class LibraryApp extends javax.swing.JFrame {
         System.out.println(query);
         try {
             bookLoansResultSet = statement0.executeQuery(query);
-            
-            String dateInString = null;
+
+            String dateInString = "Available";
             if (bookLoansResultSet.next()) {
                 dateInString = bookLoansResultSet.getString(1);
             }
-            
+
             Calendar today = Calendar.getInstance();
             Calendar dueDate = Calendar.getInstance();
             dueDate.add(Calendar.DATE, 14);
- 
-            if (dateInString == null) {
-                // Book is available, insert into BOOK LOANS
-                insert = "INSERT INTO BOOK_LOANS VALUES("
-                        + "'" + loanID + "', "
-                        + "'" + CheckOutISBNField.getText() + "', "
-                        + "'" + CheckOutUserIDField.getText() + "', "
-                        + "'" + dateFormat.format(today.getTime()) + "', "
-                        + "'" + dateFormat.format(dueDate.getTime()) + "', "
-                        + "NULL);";
-                String fine = "INSERT INTO FINES VALUES("
-                        + "'" + loanID + "', "
-                        + "NULL, "
-                        + "False);";
+
+            if (dateInString != null) {
+                // Book is available, make sure this user doesn't have more than 2 books
+                // Currently checked out
+
+                query = "SELECT COUNT(*)"
+                        + "FROM BOOK_LOANS "
+                        + "WHERE Card_id = " + CheckOutUserIDField.getText() + " "
+                        + "AND Date_in = NULL;";
                 
-                System.out.println(insert);
-                System.out.println(fine);
+                System.out.println(query);
+                bookLoansCountResultSet = statement1.executeQuery(query);
+                
+                int books = 0;
+                if (bookLoansResultSet.next()) {
+                    books = Integer.getInteger(bookLoansCountResultSet.getString(1));
+                }
+                
+                if(books > 2) {
+                    CheckOutDialogText.setText("Too many books checked out");
+                } else {
+                    // insert into BOOK LOANS
+                    insert = "INSERT INTO BOOK_LOANS VALUES("
+                            + "'" + loanID + "', "
+                            + "'" + CheckOutISBNField.getText() + "', "
+                            + "'" + CheckOutUserIDField.getText() + "', "
+                            + "'" + dateFormat.format(today.getTime()) + "', "
+                            + "'" + dateFormat.format(dueDate.getTime()) + "', "
+                            + "NULL);";
+                    fine = "INSERT INTO FINES VALUES("
+                            + "'" + loanID + "', "
+                            + "NULL, "
+                            + "False);";
 
-                loanID+=1;
-                CheckOutDialogText.setText("Due Date:"+dateFormat.format(dueDate.getTime()));
+                    System.out.println(insert);
+                    System.out.println(fine);
 
+                    loanID += 1;
+                    CheckOutDialogText.setText("Due Date:" + dateFormat.format(dueDate.getTime()));
+                }
                 try {
                     statement0.execute(insert);
                     statement0.execute(fine);
                 } catch (SQLException ex) {
                     Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-                    loanID-=1;
+                    loanID -= 1;
                     CheckOutDialogText.setText("Check Out Failed!");
                 }
             } else {
@@ -967,7 +1009,7 @@ public class LibraryApp extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         CheckOutDialog.pack();
         CheckOutDialog.setTitle("Check Out Status");
         CheckOutDialog.setVisible(true);
@@ -1111,19 +1153,45 @@ public class LibraryApp extends javax.swing.JFrame {
     }//GEN-LAST:event_FineBalanceButtonActionPerformed
 
     private void FinePayButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FinePayButtonActionPerformed
-
-        // Pay the fine for the given loan ID
-        String update;
-
-        update = "UPDATE FINES "
-                + "SET Paid=True  "
-                + "WHERE Loan_id = " + FinesLoanIDField.getText() + ";";
-        System.out.println(update);
+        
+        ResultSet bookLoansResultSet;
+        
+        // Have to make sure this book has been turned in
+        String query = "SELECT Date_in "
+                + "FROM BOOK_LOANS "
+                + "WHERE Loan_id = "+FinesLoanIDField.getText()+";";
+        
+        System.out.println(query);
         try {
-            statement0.execute(update);
+            bookLoansResultSet = statement1.executeQuery(query);
+            
+            if (bookLoansResultSet.next()) {
+                if(bookLoansResultSet.getString(1) == null){
+                    // Pay the fine for the given loan ID
+                    String update;
+
+                    update = "UPDATE FINES "
+                            + "SET Paid=True  "
+                            + "WHERE Loan_id = " + FinesLoanIDField.getText() + ";";
+                    System.out.println(update);
+
+                    statement0.execute(update);
+                    FineDialogText.setText("Fine Paid!");
+                } else {
+                    // Book is still checked out, can't pay the fine
+                    FineDialogText.setText("Book is still checked out");
+                }
+            } else {
+                FineDialogText.setText("Can't find loan");
+            }
+            
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        FineDialog.pack();
+        FineDialog.setTitle("Fine Status");
+        FineDialog.setVisible(true);
     }//GEN-LAST:event_FinePayButtonActionPerformed
 
     private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
@@ -1197,6 +1265,8 @@ public class LibraryApp extends javax.swing.JFrame {
     private javax.swing.JButton FineBalanceButton;
     private javax.swing.JTextField FineBalanceField;
     private javax.swing.JLabel FineBalanceText;
+    private javax.swing.JDialog FineDialog;
+    private javax.swing.JLabel FineDialogText;
     private javax.swing.JFrame FineFrame;
     private javax.swing.JButton FinePayButton;
     private javax.swing.JTextField FineUserIDField;
