@@ -3,6 +3,7 @@ import MySQLdb
 import sys
 import os.path
 import csv
+import re
 
 # Test the command line arguments
 usage_line = "Usage: "+sys.argv[0]+" <borrowers.csv> <books.csv>"
@@ -79,17 +80,17 @@ with open(borrow_file, 'rb') as csvfile:
 db.commit()
 
 # Get the number of rows in the resultset
-cursor.execute("SELECT * FROM BORROWER")
-numrows = cursor.rowcount
+# cursor.execute("SELECT * FROM BORROWER")
+# numrows = cursor.rowcount
 
 # Get and display one row at a time
-for x in range(0, numrows):
-    row = cursor.fetchone()
+# for x in range(0, numrows):
+    # row = cursor.fetchone()
     # print row[0], "|", row[1], "|", row[2], "|", row[3], "|", row[4]
 
 
 # Create the Authors table
-cursor.execute("CREATE TABLE AUTHORS ( Author_id bigint NOT NULL, Name varchar(100) NOT NULL, PRIMARY KEY (Author_id))")
+cursor.execute("CREATE TABLE AUTHORS ( Author_id bigint NOT NULL, Name varchar(100) NOT NULL , PRIMARY KEY (Author_id))")
 
 # Create the Book table
 cursor.execute("CREATE TABLE BOOK ( Isbn bigint NOT NULL, Title varchar(250) NOT NULL, PRIMARY KEY (Isbn))")
@@ -97,11 +98,13 @@ cursor.execute("CREATE TABLE BOOK ( Isbn bigint NOT NULL, Title varchar(250) NOT
 # Create the Book_authors table
 cursor.execute("CREATE TABLE BOOK_AUTHORS ( Author_id bigint NOT NULL, Isbn bigint NOT NULL, PRIMARY KEY (Author_id))")
 
+author_id = 1
+
 # Read the entries from the books CSV
 with open(book_file, 'rb') as csvfile:
 	reader = csv.reader(csvfile, delimiter='\t')
 	for row in reader:
-		print row[0]+" | "+row[1]+" | "+row[2]+" | "+row[3]+" | "+row[4]+" | "+row[5]+" | "+row[6]
+		# print row[0]+" | "+row[1]+" | "+row[2]+" | "+row[3]+" | "+row[4]+" | "+row[5]+" | "+row[6]
 
 		# Use ISBN13 for the book ISBN
 		isbn = row[1]
@@ -111,7 +114,90 @@ with open(book_file, 'rb') as csvfile:
 
 		# Get the authors
 		authors = row[3].split(",")
-		print "Authors = "+"|".join(authors)
+
+		for author in authors: 
+
+			if(author == ""):
+				continue
+
+			author = re.sub(r"\(.*\)", "", author)
+			author = re.sub(r"\(.*", "", author)
+			author = author.lstrip()
+
+			# Replace the periods and spaces
+			author = author.replace(".", " ")
+			author = author.replace("'", "\\'")
+			author = author.replace("   ", " ")
+			author = author.replace("  ", " ")
+			author = author.replace(";", ",")
+			author = author.replace(", ", ",")
+			author = author.replace(" ,", ",")
+
+			# Split into first, last ... names
+			author_names=author.split(" ")
+			if(" " in author_names):
+				author_names.remove(" ")
+
+			if("" in author_names):
+				author_names.remove("")
+
+			
+
+			# Search for the author to see if we already have him/her in the DB
+			exe_string = "SELECT * from AUTHORS WHERE Name LIKE BINARY\'"
+			count = 0;
+			if(len(author_names) < 3):
+				exe_string=exe_string+author
+
+			else:
+				for name in author_names:
+					if(count < 1):
+						exe_string=exe_string+name[0]+"%"
+					else:
+						exe_string=exe_string+name+"%"
+					count = count+1
+
+			exe_string=exe_string+"\'"
+			cursor.execute(exe_string)
+
+			# Get the number of rows in the resultset
+			numrows = cursor.rowcount
+
+			if(numrows == 2):
+				# More than one match, we need to merge the authors
+				print ""
+				print author
+				print exe_string
+				# Get and display one row at a time
+				# for x in range(0, numrows):
+				#     row = cursor.fetchone()
+				#     print row[0], "|", row[1]
+
+
+				author_len = 0
+				author_large_id = 0
+				for x in range(0, numrows):
+					row = cursor.fetchone()
+
+					if(len(row[1]) > author_len):
+						author_len = len(row[1])
+						author_large_id = row[0]
+
+				print author_large_id
+
+			elif(numrows == 0):
+				# Add this author
+				exe_string = "INSERT INTO AUTHORS VALUES('"+str(author_id)+"', '"+author+"')"
+				author_id = author_id +1
+				# print exe_string
+				cursor.execute(exe_string)
+
+			# Add Author if necessary to the AUTHORS table
+
+			# Add the Author to the BOOK_AUTHORS table
+
+
+		# print "Authors = "+"|".join(authors)
 
 		# print "isbn = "+isbn+" title = "+title
 
@@ -122,12 +208,12 @@ with open(book_file, 'rb') as csvfile:
 db.commit()
 
 # Get the number of rows in the resultset
-cursor.execute("SELECT * FROM BOOK")
-numrows = cursor.rowcount
+# cursor.execute("SELECT * FROM BOOK")
+# numrows = cursor.rowcount
 
-# Get and display one row at a time
-for x in range(0, numrows):
-    row = cursor.fetchone()
+# # Get and display one row at a time
+# for x in range(0, numrows):
+    # row = cursor.fetchone()
     # print row[0], "|", row[1]
 
 # Add authors
