@@ -11,6 +11,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Objects;
@@ -76,14 +77,16 @@ public class LibraryApp extends javax.swing.JFrame {
     private Statement statement0 = null;
     private Statement statement1 = null;
     private Statement statement2 = null;
-    
+
     private long userID;
     private long loanID;
     
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd");
+
     public static int daysBetween(Calendar endDate, Calendar startDate) {
         long end = endDate.getTimeInMillis();
         long start = startDate.getTimeInMillis();
-        return (int)TimeUnit.MILLISECONDS.toDays(Math.abs(end - start));
+        return (int) TimeUnit.MILLISECONDS.toDays(Math.abs(end - start));
     }
 
     /**
@@ -92,7 +95,7 @@ public class LibraryApp extends javax.swing.JFrame {
     public LibraryApp() {
         initComponents();
         this.setTitle("Library App");
-        
+
         try {
             System.out.println("Opening localhost/library database");
             // Import the database, assuming that it was already populated
@@ -107,15 +110,15 @@ public class LibraryApp extends javax.swing.JFrame {
             } else {
                 System.out.println("Database Open!");
             }
-                    
+
             // Statements allow to issue SQL queries to the database
             statement0 = connect.createStatement();
             statement1 = connect.createStatement();
             statement2 = connect.createStatement();
-            
+
             // Update the next userID and LoanID values
-            String query; 
-                    
+            String query;
+
             query = "SELECT Card_id "
                     + "FROM BORROWER "
                     + "ORDER BY Card_id DESC;";
@@ -130,7 +133,7 @@ public class LibraryApp extends javax.swing.JFrame {
             } else {
                 userID = 1;
             }
-            
+
             query = "SELECT Loan_id "
                     + "FROM BOOK_LOANS "
                     + "ORDER BY Loan_id DESC;";
@@ -139,19 +142,19 @@ public class LibraryApp extends javax.swing.JFrame {
             ResultSet bookLoansResultSet = statement0.executeQuery(query);
 
             if (bookLoansResultSet.next()) {
-               loanID = Long.parseLong(bookLoansResultSet.getString(1)) + 1;
+                loanID = Long.parseLong(bookLoansResultSet.getString(1)) + 1;
             } else {
-               loanID = 1;
+                loanID = 1;
             }
-            
-            System.out.println("Next userID = "+userID);
-            System.out.println("Next loanID = "+loanID);
+
+            System.out.println("Next userID = " + userID);
+            System.out.println("Next loanID = " + loanID);
 
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     private void executeSearch() {
         ResultSet bookResultSet;
         ResultSet bookAuthorsResultSet;
@@ -847,55 +850,54 @@ public class LibraryApp extends javax.swing.JFrame {
 
     private void CreateUserButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CreateUserButtonActionPerformed
 
-        
         String phone, ssn;
-        
+
         // Remove any non-numerics from the ssn and phone strings;
         phone = PhoneField.getText().replaceAll("[^\\d.]", "");
         ssn = SSNField.getText().replaceAll("[^\\d.]", "");
-        
+
         // Attempt to add this user
         String insert = "INSERT INTO BORROWER VALUES("
-                +"'"+userID+"', "
-                +"'"+ssn+"', "
-                +"'"+NameField.getText()+"', "
-                +"'"+AddressField.getText()+"', "
-                +"'"+phone+"');";
+                + "'" + userID + "', "
+                + "'" + ssn + "', "
+                + "'" + NameField.getText() + "', "
+                + "'" + AddressField.getText() + "', "
+                + "'" + phone + "');";
 
         System.out.println(insert);
-        NewUserStatus.setText("New User Added! Card_id = "+userID);
-        userID+=1;
-        
+        NewUserStatus.setText("New User Added! Card_id = " + userID);
+        userID += 1;
+
         try {
             statement0.execute(insert);
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-            userID-=1;
+            userID -= 1;
             NewUserStatus.setText("Failed! Can not have duplicate SSN");
         }
-        
+
         NewUserDialog.pack();
         NewUserDialog.setTitle("New User Status");
         NewUserDialog.setVisible(true);
     }//GEN-LAST:event_CreateUserButtonActionPerformed
 
     private void CheckInButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckInButtonActionPerformed
-        
+
         // Update the BOOK_LOANS table
         String update = "UPDATE BOOK_LOANS "
-                +"SET Date_in =  NOW() "
-                +"WHERE Isbn = "+CheckInISBNField.getText()
-                +"AND Card_id = "+CheckInUserIDField.getText()+";";
+                + "SET Date_in =  NOW() "
+                + "WHERE Isbn = " + CheckInISBNField.getText()
+                + "AND Card_id = " + CheckInUserIDField.getText() + ";";
         System.out.println(update);
-        
+
         try {
             statement0.execute(update);
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-            userID-=1;
+            userID -= 1;
             NewUserStatus.setText("Failed! Can't find ISBN and Card_ID match");
         }
-        
+
         CheckInDialog.pack();
         CheckInDialog.setTitle("Check In Status");
         CheckInDialog.setVisible(true);
@@ -907,27 +909,65 @@ public class LibraryApp extends javax.swing.JFrame {
     }//GEN-LAST:event_SearchButtonActionPerformed
 
     private void CheckOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckOutButtonActionPerformed
-    
+
         ResultSet bookLoansResultSet;
+        String result = "";
+        String insert;
+
         // Search for this book in the Book_loans table
-        String query = "SELECT Date_in, Due_date, Date_out "
+        String query = "SELECT Date_in, Date_out "
                 + "FROM BOOK_LOANS "
-                + "WHERE Isbn= '" + entry.ISBN + "'"
-                + "ORDER BY Date_out ASC;";
+                + "WHERE Isbn= '" + CheckOutISBNField.getText() + "' "
+                + "ORDER BY Date_out DESC;";
         System.out.println(query);
         try {
             bookLoansResultSet = statement0.executeQuery(query);
-            while (bookLoansResultSet.next()) {
+            
+            String dateInString = null;
+            if (bookLoansResultSet.next()) {
+                dateInString = bookLoansResultSet.getString(1);
+            }
+            
+            Calendar today = Calendar.getInstance();
+            Calendar dueDate = Calendar.getInstance();
+            dueDate.add(Calendar.DATE, 14);
+ 
+            if (dateInString == null) {
+                // Book is available, insert into BOOK LOANS
+                insert = "INSERT INTO BOOK_LOANS VALUES("
+                        + "'" + loanID + "', "
+                        + "'" + CheckOutISBNField.getText() + "', "
+                        + "'" + CheckOutUserIDField.getText() + "', "
+                        + "'" + dateFormat.format(today.getTime()) + "', "
+                        + "'" + dateFormat.format(dueDate.getTime()) + "', "
+                        + "NULL);";
+                String fine = "INSERT INTO FINES VALUES("
+                        + "'" + loanID + "', "
+                        + "NULL, "
+                        + "False);";
+                
+                System.out.println(insert);
+                System.out.println(fine);
 
-                String dateInString = bookLoansResultSet.getString(1);
-                String dueDateString = bookLoansResultSet.getString(2);
+                loanID+=1;
+                CheckOutDialogText.setText("Due Date:"+dateFormat.format(dueDate.getTime()));
 
-                System.out.println("DateIn: " + dateInString + " DueDate: " + dueDateString);
-
+                try {
+                    statement0.execute(insert);
+                    statement0.execute(fine);
+                } catch (SQLException ex) {
+                    Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+                    loanID-=1;
+                    CheckOutDialogText.setText("Check Out Failed!");
+                }
+            } else {
+                // Book is not available
+                CheckOutDialogText.setText("Book is not available for checkout");
             }
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
         CheckOutDialog.pack();
         CheckOutDialog.setTitle("Check Out Status");
         CheckOutDialog.setVisible(true);
@@ -940,7 +980,7 @@ public class LibraryApp extends javax.swing.JFrame {
     }//GEN-LAST:event_CheckOutActionPerformed
 
     private void UpdateFinesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_UpdateFinesButtonActionPerformed
-        
+
         ResultSet bookLoansResultSet;
         String query;
         String update;
@@ -953,67 +993,67 @@ public class LibraryApp extends javax.swing.JFrame {
                 + "WHERE Date_in IS NULL "
                 + "ORDER BY Date_out ASC;";
         System.out.println(query);
-        
+
         try {
             bookLoansResultSet = statement0.executeQuery(query);
             while (bookLoansResultSet.next()) {
 
                 String dateInString = bookLoansResultSet.getString(1);
                 String dueDateString = bookLoansResultSet.getString(2);
-                String loanIDString = bookLoansResultSet.getString(3);        
-                
-                year = Integer.parseInt(dueDateString.substring(0,4));
-                month = Integer.parseInt(dueDateString.substring(5,7));
-                day = Integer.parseInt(dueDateString.substring(8,10));
+                String loanIDString = bookLoansResultSet.getString(3);
+
+                year = Integer.parseInt(dueDateString.substring(0, 4));
+                month = Integer.parseInt(dueDateString.substring(5, 7));
+                day = Integer.parseInt(dueDateString.substring(8, 10));
 
                 Calendar dueDate = Calendar.getInstance();
-                dueDate.set(year, month-1, day); // Calendar indexes the months starting with 0
-                    
-                if(dateInString == null) {
+                dueDate.set(year, month - 1, day); // Calendar indexes the months starting with 0
+
+                if (dateInString == null) {
                     // See if the book is past due
-                   
-                    if(dueDate.before(today)) {
+
+                    if (dueDate.before(today)) {
                         // Recalculate the fine
                         int days = daysBetween(today, dueDate);
-                        
+
                         update = "UPDATE FINES "
-                                +"SET Fine_amt = "+Float.toString((float)(days*0.25))+" "
-                                +"WHERE Loan_id = "+loanIDString+";";
+                                + "SET Fine_amt = " + Float.toString((float) (days * 0.25)) + " "
+                                + "WHERE Loan_id = " + loanIDString + ";";
                         System.out.println(update);
-                        
+
                         statement1.execute(update);
                     }
                 } else {
                     // Calculate the fine ammount if the book has already been turned in
-                    
-                    year = Integer.parseInt(dateInString.substring(0,4));
-                    month = Integer.parseInt(dateInString.substring(5,7));
-                    day = Integer.parseInt(dateInString.substring(8,10));
-                    
+
+                    year = Integer.parseInt(dateInString.substring(0, 4));
+                    month = Integer.parseInt(dateInString.substring(5, 7));
+                    day = Integer.parseInt(dateInString.substring(8, 10));
+
                     Calendar dateIn = Calendar.getInstance();
-                    dateIn.set(year, month-1, day); // Calendar indexes the months starting with 0
-                    
-                    if(dueDate.before(dateIn)) {
+                    dateIn.set(year, month - 1, day); // Calendar indexes the months starting with 0
+
+                    if (dueDate.before(dateIn)) {
                         // Recalculate the fine
                         int days = daysBetween(dateIn, dueDate);
-                        
+
                         update = "UPDATE FINES "
-                                +"SET Fine_amt = "+Float.toString((float)(days*0.25))+" "
-                                +"WHERE Loan_id = "+loanIDString+";";
+                                + "SET Fine_amt = " + Float.toString((float) (days * 0.25)) + " "
+                                + "WHERE Loan_id = " + loanIDString + ";";
                         System.out.println(update);
-                        
+
                         statement1.execute(update);
                     }
                 }
             }
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-        }         
+        }
     }//GEN-LAST:event_UpdateFinesButtonActionPerformed
 
     private void FineBalanceButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_FineBalanceButtonActionPerformed
         // TODO Query the fine balance for the given userID
-        
+
         ResultSet finesResultSet;
         ResultSet bookLoansResultSet;
         String query;
@@ -1023,49 +1063,49 @@ public class LibraryApp extends javax.swing.JFrame {
         // Need to check if the books are checked out
         query = "SELECT Loan_id, ISBN, Due_date "
                 + "FROM BOOK_LOANS "
-                + "WHERE Card_id = "+FineUserIDField.getText()+";";
+                + "WHERE Card_id = " + FineUserIDField.getText() + ";";
         System.out.println(query);
-        
+
         try {
             bookLoansResultSet = statement0.executeQuery(query);
             while (bookLoansResultSet.next()) {
-                
+
                 String loanIDString = bookLoansResultSet.getString(1);
                 String ISBNString = bookLoansResultSet.getString(2);
                 String dueDateString = bookLoansResultSet.getString(3);
-                        
+
                 query = "SELECT Fine_amt, Paid "
-                + "FROM FINES "
-                + "WHERE Loan_id = "+loanIDString+";";
-                
+                        + "FROM FINES "
+                        + "WHERE Loan_id = " + loanIDString + ";";
+
                 System.out.println(query);
                 finesResultSet = statement1.executeQuery(query);
 
                 while (finesResultSet.next()) {
                     String fineAmtString = finesResultSet.getString(1);
                     String paidString = finesResultSet.getString(2);
-                    
-                    if(fineAmtString == null) {
+
+                    if (fineAmtString == null) {
                         fineAmtString = "0.00";
                     }
-                    
-                    if(paidString.equals("0")) {
+
+                    if (paidString.equals("0")) {
                         paidString = "Due";
                     } else {
                         paidString = "Paid";
                     }
-                    
-                    finesText += loanIDString+"  |  "+ISBNString+"  |  "+dueDateString+"  |  "+fineAmtString+"  |  "+paidString+"\n";
-                            
-                    if(paidString.equals("Due")) {
+
+                    finesText += loanIDString + "  |  " + ISBNString + "  |  " + dueDateString + "  |  " + fineAmtString + "  |  " + paidString + "\n";
+
+                    if (paidString.equals("Due")) {
                         balance += Double.valueOf(fineAmtString);
                     }
                 }
             }
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-        }  
-        
+        }
+
         FineBalanceField.setText(Double.toString(balance));
         FinesTextArea.setText(finesText);
     }//GEN-LAST:event_FineBalanceButtonActionPerformed
@@ -1074,10 +1114,10 @@ public class LibraryApp extends javax.swing.JFrame {
 
         // Pay the fine for the given loan ID
         String update;
-        
+
         update = "UPDATE FINES "
-                +"SET Paid=True  "
-                +"WHERE Loan_id = "+FinesLoanIDField.getText()+";";
+                + "SET Paid=True  "
+                + "WHERE Loan_id = " + FinesLoanIDField.getText() + ";";
         System.out.println(update);
         try {
             statement0.execute(update);
@@ -1092,7 +1132,7 @@ public class LibraryApp extends javax.swing.JFrame {
 
     private void SearchFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_SearchFieldKeyReleased
 
-        if(evt.getKeyCode() == 10) {
+        if (evt.getKeyCode() == 10) {
             executeSearch();
         }
     }//GEN-LAST:event_SearchFieldKeyReleased

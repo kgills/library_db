@@ -88,11 +88,10 @@ cursor.execute("""CREATE TABLE BOOK_LOANS (
 
 # Creat the fines table
 cursor.execute("""CREATE TABLE FINES ( 
-	Loan_id bigint NOT NULL, 
+	Loan_id bigint NOT NULL UNIQUE, 
 	Fine_amt DECIMAL(10,2), 
 	Paid BOOLEAN NOT NULL,
 
-	PRIMARY KEY (Loan_id),
 	FOREIGN KEY (Loan_id) 
 	 	REFERENCES BOOK_LOANS(Loan_id) 
 	 	ON DELETE CASCADE)
