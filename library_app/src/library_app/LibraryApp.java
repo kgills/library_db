@@ -5,6 +5,7 @@
  */
 package library_app;
 
+import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -124,11 +125,11 @@ public class LibraryApp extends javax.swing.JFrame {
 
             userID = 1;
 
-            while (borrowersResultSet.next()) {
-               String userIDString = borrowersResultSet.getString(1);
-                userID = Long.parseLong(userIDString) + 1;
-               break;
-            } 
+            if (borrowersResultSet.next()) {
+                userID = Long.parseLong(borrowersResultSet.getString(1)) + 1;
+            } else {
+                userID = 1;
+            }
             
             query = "SELECT Loan_id "
                     + "FROM BOOK_LOANS "
@@ -140,7 +141,7 @@ public class LibraryApp extends javax.swing.JFrame {
             if (bookLoansResultSet.next()) {
                loanID = Long.parseLong(bookLoansResultSet.getString(1)) + 1;
             } else {
-                userID = 1;
+               loanID = 1;
             }
             
             System.out.println("Next userID = "+userID);
@@ -149,6 +150,209 @@ public class LibraryApp extends javax.swing.JFrame {
         } catch (ClassNotFoundException | SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    private void executeSearch() {
+        ResultSet bookResultSet;
+        ResultSet bookAuthorsResultSet;
+        ResultSet authorsResultSet;
+        ResultSet bookLoansResultSet;
+        String query;
+
+        Set<SearchEntry> searchResults;
+        searchResults = new HashSet<>();
+        String textResults = "";
+
+        try {
+            // Query the database for authors that match what's in the serach bar
+            query = "SELECT * "
+                    + "FROM AUTHORS "
+                    + "WHERE LOWER(AUTHORS.name) LIKE '%" + SearchField.getText() + "%';";
+            System.out.println(query);
+
+            authorsResultSet = statement0.executeQuery(query);
+
+            while (authorsResultSet.next()) {
+
+                String authorID = authorsResultSet.getString(1);
+                String authorName = authorsResultSet.getString(2);
+                System.out.println("AuthorID: " + authorID + " AuthorName: " + authorName);
+
+                // Search book_authors for the ISBNs  by this author
+                query = "SELECT Isbn "
+                        + "FROM BOOK_AUTHORS "
+                        + "WHERE Author_id='" + authorID + "';";
+                System.out.println(query);
+
+                bookAuthorsResultSet = statement1.executeQuery(query);
+
+                while (bookAuthorsResultSet.next()) {
+
+                    String ISBN = bookAuthorsResultSet.getString(1);
+                    System.out.println("ISBN: " + ISBN);
+
+                    // Search books for the titles corresponding to this ISBN
+                    query = "SELECT Title "
+                            + "FROM BOOK "
+                            + "WHERE Isbn='" + ISBN + "';";
+                    System.out.println(query);
+
+                    bookResultSet = statement2.executeQuery(query);
+
+                    while (bookResultSet.next()) {
+                        String title = bookResultSet.getString(1);
+                        System.out.println("Title: " + title);
+
+                        // Need to add the books to the search results
+                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
+                    }
+
+                    bookResultSet.close();
+                }
+
+                bookAuthorsResultSet.close();
+            }
+
+            authorsResultSet.close();
+
+            // Query for books titles that match
+            query = "SELECT * "
+                    + "FROM BOOK "
+                    + "WHERE LOWER(BOOK.Title) LIKE '%" + SearchField.getText() + "%';";
+            System.out.println(query);
+
+            bookResultSet = statement0.executeQuery(query);
+
+            while (bookResultSet.next()) {
+
+                String ISBN = bookResultSet.getString(1);
+                String title = bookResultSet.getString(2);
+                System.out.println("ISBN: " + ISBN + " Title: " + title);
+
+                // Search book_authors for the Author_id from this book
+                query = "SELECT Author_id "
+                        + "FROM BOOK_AUTHORS "
+                        + "WHERE Isbn='" + ISBN + "';";
+                System.out.println(query);
+
+                bookAuthorsResultSet = statement1.executeQuery(query);
+
+                while (bookAuthorsResultSet.next()) {
+
+                    String authorID = bookAuthorsResultSet.getString(1);
+                    System.out.println("authorID: " + authorID);
+
+                    // Search Authors for the author name corresponding to this author_id
+                    query = "SELECT Name "
+                            + "FROM AUTHORS "
+                            + "WHERE Author_id='" + authorID + "';";
+                    System.out.println(query);
+
+                    authorsResultSet = statement2.executeQuery(query);
+
+                    while (authorsResultSet.next()) {
+                        String authorName = authorsResultSet.getString(1);
+                        System.out.println("Author: " + authorName);
+
+                        // Need to add the books to the search results
+                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
+                    }
+
+                    authorsResultSet.close();
+                }
+
+                bookAuthorsResultSet.close();
+            }
+
+            bookResultSet.close();
+
+            // Query for ISBNs that match
+            query = "SELECT Title "
+                    + "FROM BOOK "
+                    + "WHERE LOWER(BOOK.Isbn) LIKE '" + SearchField.getText() + "';";
+            System.out.println(query);
+
+            bookResultSet = statement0.executeQuery(query);
+
+            while (bookResultSet.next()) {
+
+                String ISBN = SearchField.getText();
+                String title = bookResultSet.getString(1);
+                System.out.println("ISBN: " + ISBN + " Title: " + title);
+
+                // Search book_authors for the Author_id from this book
+                query = "SELECT Author_id "
+                        + "FROM BOOK_AUTHORS "
+                        + "WHERE Isbn='" + ISBN + "';";
+                System.out.println(query);
+
+                bookAuthorsResultSet = statement1.executeQuery(query);
+
+                while (bookAuthorsResultSet.next()) {
+
+                    String authorID = bookAuthorsResultSet.getString(1);
+                    System.out.println("authorID: " + authorID);
+
+                    // Search Authors for the author name corresponding to this author_id
+                    query = "SELECT Name "
+                            + "FROM AUTHORS "
+                            + "WHERE Author_id='" + authorID + "';";
+                    System.out.println(query);
+
+                    authorsResultSet = statement2.executeQuery(query);
+
+                    while (authorsResultSet.next()) {
+                        String authorName = authorsResultSet.getString(1);
+                        System.out.println("Author: " + authorName);
+
+                        // Need to add the books to the search results
+                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
+                    }
+
+                    authorsResultSet.close();
+                }
+
+                bookAuthorsResultSet.close();
+            }
+
+            bookResultSet.close();
+
+        } catch (SQLException ex) {
+            Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        // Add the items to the textResults
+        for (SearchEntry entry : searchResults) {
+
+            // Need to check if the books are checked out
+            query = "SELECT Date_in, Due_date, Date_out "
+                    + "FROM BOOK_LOANS "
+                    + "WHERE Isbn= '" + entry.ISBN + "'"
+                    + "ORDER BY Date_out ASC;";
+            System.out.println(query);
+            try {
+                bookLoansResultSet = statement0.executeQuery(query);
+                while (bookLoansResultSet.next()) {
+
+                    String dateInString = bookLoansResultSet.getString(1);
+                    String dueDateString = bookLoansResultSet.getString(2);
+
+                    System.out.println("DateIn: " + dateInString + " DueDate: " + dueDateString);
+
+                    if (dateInString == null) {
+                        entry.dueDate = dueDateString;
+                    } else {
+                        entry.dueDate = "Available";
+                    }
+                }
+            } catch (SQLException ex) {
+                Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            textResults += entry.ISBN + "  |  " + entry.author + "  |  "
+                    + entry.title + "  |  " + entry.dueDate + "\n";
+        }
+        SearchResultsText.setText(textResults);
     }
 
     /**
@@ -518,11 +722,22 @@ public class LibraryApp extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                formKeyPressed(evt);
+            }
+        });
 
         SearchButton.setText("Search");
         SearchButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 SearchButtonActionPerformed(evt);
+            }
+        });
+
+        SearchField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                SearchFieldKeyReleased(evt);
             }
         });
 
@@ -587,7 +802,7 @@ public class LibraryApp extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(SearchButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(SearchField, javax.swing.GroupLayout.DEFAULT_SIZE, 518, Short.MAX_VALUE)))
+                        .addComponent(SearchField, javax.swing.GroupLayout.DEFAULT_SIZE, 642, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -598,7 +813,7 @@ public class LibraryApp extends javax.swing.JFrame {
                     .addComponent(SearchButton)
                     .addComponent(SearchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(SearchResults, javax.swing.GroupLayout.DEFAULT_SIZE, 123, Short.MAX_VALUE)
+                .addComponent(SearchResults, javax.swing.GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -688,209 +903,31 @@ public class LibraryApp extends javax.swing.JFrame {
 
     private void SearchButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_SearchButtonActionPerformed
 
-        ResultSet bookResultSet;
-        ResultSet bookAuthorsResultSet;
-        ResultSet authorsResultSet;
-        ResultSet bookLoansResultSet;
-        String query;
-
-        Set<SearchEntry> searchResults;
-        searchResults = new HashSet<>();
-        String textResults = "";
-
-        try {
-            // Query the database for authors that match what's in the serach bar
-            query = "SELECT * "
-                    + "FROM AUTHORS "
-                    + "WHERE LOWER(AUTHORS.name) LIKE '%" + SearchField.getText() + "%';";
-            System.out.println(query);
-
-            authorsResultSet = statement0.executeQuery(query);
-
-            while (authorsResultSet.next()) {
-
-                String authorID = authorsResultSet.getString(1);
-                String authorName = authorsResultSet.getString(2);
-                System.out.println("AuthorID: " + authorID + " AuthorName: " + authorName);
-
-                // Search book_authors for the ISBNs  by this author
-                query = "SELECT Isbn "
-                        + "FROM BOOK_AUTHORS "
-                        + "WHERE Author_id='" + authorID + "';";
-                System.out.println(query);
-
-                bookAuthorsResultSet = statement1.executeQuery(query);
-
-                while (bookAuthorsResultSet.next()) {
-
-                    String ISBN = bookAuthorsResultSet.getString(1);
-                    System.out.println("ISBN: " + ISBN);
-
-                    // Search books for the titles corresponding to this ISBN
-                    query = "SELECT Title "
-                            + "FROM BOOK "
-                            + "WHERE Isbn='" + ISBN + "';";
-                    System.out.println(query);
-
-                    bookResultSet = statement2.executeQuery(query);
-
-                    while (bookResultSet.next()) {
-                        String title = bookResultSet.getString(1);
-                        System.out.println("Title: " + title);
-
-                        // Need to add the books to the search results
-                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
-                    }
-
-                    bookResultSet.close();
-                }
-
-                bookAuthorsResultSet.close();
-            }
-
-            authorsResultSet.close();
-
-            // Query for books titles that match
-            query = "SELECT * "
-                    + "FROM BOOK "
-                    + "WHERE LOWER(BOOK.Title) LIKE '%" + SearchField.getText() + "%';";
-            System.out.println(query);
-
-            bookResultSet = statement0.executeQuery(query);
-
-            while (bookResultSet.next()) {
-
-                String ISBN = bookResultSet.getString(1);
-                String title = bookResultSet.getString(2);
-                System.out.println("ISBN: " + ISBN + " Title: " + title);
-
-                // Search book_authors for the Author_id from this book
-                query = "SELECT Author_id "
-                        + "FROM BOOK_AUTHORS "
-                        + "WHERE Isbn='" + ISBN + "';";
-                System.out.println(query);
-
-                bookAuthorsResultSet = statement1.executeQuery(query);
-
-                while (bookAuthorsResultSet.next()) {
-
-                    String authorID = bookAuthorsResultSet.getString(1);
-                    System.out.println("authorID: " + authorID);
-
-                    // Search Authors for the author name corresponding to this author_id
-                    query = "SELECT Name "
-                            + "FROM AUTHORS "
-                            + "WHERE Author_id='" + authorID + "';";
-                    System.out.println(query);
-
-                    authorsResultSet = statement2.executeQuery(query);
-
-                    while (authorsResultSet.next()) {
-                        String authorName = authorsResultSet.getString(1);
-                        System.out.println("Author: " + authorName);
-
-                        // Need to add the books to the search results
-                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
-                    }
-
-                    authorsResultSet.close();
-                }
-
-                bookAuthorsResultSet.close();
-            }
-
-            bookResultSet.close();
-
-            // Query for ISBNs that match
-            query = "SELECT Title "
-                    + "FROM BOOK "
-                    + "WHERE LOWER(BOOK.Isbn) LIKE '" + SearchField.getText() + "';";
-            System.out.println(query);
-
-            bookResultSet = statement0.executeQuery(query);
-
-            while (bookResultSet.next()) {
-
-                String ISBN = SearchField.getText();
-                String title = bookResultSet.getString(1);
-                System.out.println("ISBN: " + ISBN + " Title: " + title);
-
-                // Search book_authors for the Author_id from this book
-                query = "SELECT Author_id "
-                        + "FROM BOOK_AUTHORS "
-                        + "WHERE Isbn='" + ISBN + "';";
-                System.out.println(query);
-
-                bookAuthorsResultSet = statement1.executeQuery(query);
-
-                while (bookAuthorsResultSet.next()) {
-
-                    String authorID = bookAuthorsResultSet.getString(1);
-                    System.out.println("authorID: " + authorID);
-
-                    // Search Authors for the author name corresponding to this author_id
-                    query = "SELECT Name "
-                            + "FROM AUTHORS "
-                            + "WHERE Author_id='" + authorID + "';";
-                    System.out.println(query);
-
-                    authorsResultSet = statement2.executeQuery(query);
-
-                    while (authorsResultSet.next()) {
-                        String authorName = authorsResultSet.getString(1);
-                        System.out.println("Author: " + authorName);
-
-                        // Need to add the books to the search results
-                        searchResults.add(new SearchEntry(ISBN, authorName, title, "Available"));
-                    }
-
-                    authorsResultSet.close();
-                }
-
-                bookAuthorsResultSet.close();
-            }
-
-            bookResultSet.close();
-
-        } catch (SQLException ex) {
-            Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-        // Add the items to the textResults
-        for (SearchEntry entry : searchResults) {
-
-            // Need to check if the books are checked out
-            query = "SELECT Date_in, Due_date, Date_out "
-                    + "FROM BOOK_LOANS "
-                    + "WHERE Isbn= '" + entry.ISBN + "'"
-                    + "ORDER BY Date_out ASC;";
-            System.out.println(query);
-            try {
-                bookLoansResultSet = statement0.executeQuery(query);
-                while (bookLoansResultSet.next()) {
-
-                    String dateInString = bookLoansResultSet.getString(1);
-                    String dueDateString = bookLoansResultSet.getString(2);
-
-                    System.out.println("DateIn: " + dateInString + " DueDate: " + dueDateString);
-
-                    if (dateInString == null) {
-                        entry.dueDate = dueDateString;
-                    } else {
-                        entry.dueDate = "Available";
-                    }
-                }
-            } catch (SQLException ex) {
-                Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
-            textResults += entry.ISBN + "  |  " + entry.author + "  |  "
-                    + entry.title + "  |  " + entry.dueDate + "\n";
-        }
-        SearchResultsText.setText(textResults);
+        executeSearch();
     }//GEN-LAST:event_SearchButtonActionPerformed
 
     private void CheckOutButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CheckOutButtonActionPerformed
+    
+        ResultSet bookLoansResultSet;
+        // Search for this book in the Book_loans table
+        String query = "SELECT Date_in, Due_date, Date_out "
+                + "FROM BOOK_LOANS "
+                + "WHERE Isbn= '" + entry.ISBN + "'"
+                + "ORDER BY Date_out ASC;";
+        System.out.println(query);
+        try {
+            bookLoansResultSet = statement0.executeQuery(query);
+            while (bookLoansResultSet.next()) {
+
+                String dateInString = bookLoansResultSet.getString(1);
+                String dueDateString = bookLoansResultSet.getString(2);
+
+                System.out.println("DateIn: " + dateInString + " DueDate: " + dueDateString);
+
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+        }
         CheckOutDialog.pack();
         CheckOutDialog.setTitle("Check Out Status");
         CheckOutDialog.setVisible(true);
@@ -1048,6 +1085,17 @@ public class LibraryApp extends javax.swing.JFrame {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
         }
     }//GEN-LAST:event_FinePayButtonActionPerformed
+
+    private void formKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_formKeyPressed
+
+    }//GEN-LAST:event_formKeyPressed
+
+    private void SearchFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_SearchFieldKeyReleased
+
+        if(evt.getKeyCode() == 10) {
+            executeSearch();
+        }
+    }//GEN-LAST:event_SearchFieldKeyReleased
 
     /**
      * @param args the command line arguments
