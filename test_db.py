@@ -101,7 +101,7 @@ cursor.execute("INSERT INTO BOOK_LOANS VALUES('1', '123456789', '1', '20170214',
 cursor.execute("INSERT INTO BOOK_LOANS VALUES('2', '123456789', '1', '20170704', '20170720', NULL)")
 cursor.execute("INSERT INTO BOOK_LOANS VALUES('3', '123456788', '2', '20170703', '20170719', NULL)")
 cursor.execute("INSERT INTO BOOK_LOANS VALUES('4', '123456787', '3', '20170703', '20170719', NULL)")
-cursor.execute("INSERT INTO BOOK_LOANS VALUES('5', '123456786', '3', '20170601', '20170615', NULL)")
+cursor.execute("INSERT INTO BOOK_LOANS VALUES('5', '123456786', '3', '20170601', '20170615', 20170701)")
 
 # Automatically create the fine entry with the book loans, leave NULL until it becomes due
 cursor.execute("INSERT INTO FINES VALUES('1', NULL, False)")

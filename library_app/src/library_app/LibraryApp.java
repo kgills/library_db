@@ -414,6 +414,7 @@ public class LibraryApp extends javax.swing.JFrame {
         SearchField = new javax.swing.JTextField();
         SearchResults = new javax.swing.JScrollPane();
         SearchResultsText = new javax.swing.JTextArea();
+        SearchResultsLabel = new javax.swing.JLabel();
         MenuBar = new javax.swing.JMenuBar();
         FileMenu = new javax.swing.JMenu();
         PayFine = new javax.swing.JMenuItem();
@@ -535,7 +536,7 @@ public class LibraryApp extends javax.swing.JFrame {
 
         FinesLoadIDText.setText("LoanID");
 
-        FinesDescription.setText("LoanID, ISBN, Due Date, Amount, Status");
+        FinesDescription.setText("LoanID | ISBN | Due Date | Amount | Status");
 
         javax.swing.GroupLayout FineFrameLayout = new javax.swing.GroupLayout(FineFrame.getContentPane());
         FineFrame.getContentPane().setLayout(FineFrameLayout);
@@ -769,6 +770,8 @@ public class LibraryApp extends javax.swing.JFrame {
         SearchResultsText.setRows(5);
         SearchResults.setViewportView(SearchResultsText);
 
+        SearchResultsLabel.setText("ISBN | Author | Title | Due Date");
+
         FileMenu.setText("File");
 
         PayFine.setText("Pay Fine");
@@ -826,7 +829,10 @@ public class LibraryApp extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(SearchButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(SearchField, javax.swing.GroupLayout.DEFAULT_SIZE, 642, Short.MAX_VALUE)))
+                        .addComponent(SearchField, javax.swing.GroupLayout.DEFAULT_SIZE, 642, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(SearchResultsLabel)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -836,8 +842,10 @@ public class LibraryApp extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(SearchButton)
                     .addComponent(SearchField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(SearchResults, javax.swing.GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(SearchResultsLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(SearchResults, javax.swing.GroupLayout.DEFAULT_SIZE, 165, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1166,7 +1174,9 @@ public class LibraryApp extends javax.swing.JFrame {
             bookLoansResultSet = statement1.executeQuery(query);
             
             if (bookLoansResultSet.next()) {
-                if(bookLoansResultSet.getString(1) == null){
+                String dateIn = bookLoansResultSet.getString(1);
+                System.out.println(dateIn);
+                if(dateIn != null){
                     // Pay the fine for the given loan ID
                     String update;
 
@@ -1291,6 +1301,7 @@ public class LibraryApp extends javax.swing.JFrame {
     private javax.swing.JButton SearchButton;
     private javax.swing.JTextField SearchField;
     private javax.swing.JScrollPane SearchResults;
+    private javax.swing.JLabel SearchResultsLabel;
     private javax.swing.JTextArea SearchResultsText;
     private javax.swing.JButton UpdateFinesButton;
     // End of variables declaration//GEN-END:variables

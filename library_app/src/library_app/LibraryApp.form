@@ -266,7 +266,7 @@
         </Component>
         <Component class="javax.swing.JLabel" name="FinesDescription">
           <Properties>
-            <Property name="text" type="java.lang.String" value="LoanID, ISBN, Due Date, Amount, Status"/>
+            <Property name="text" type="java.lang.String" value="LoanID | ISBN | Due Date | Amount | Status"/>
           </Properties>
         </Component>
       </SubComponents>
@@ -585,7 +585,7 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" alignment="0" attributes="0">
+          <Group type="102" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="SearchResults" max="32767" attributes="0"/>
@@ -593,6 +593,10 @@
                       <Component id="SearchButton" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="SearchField" pref="642" max="32767" attributes="0"/>
+                  </Group>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="SearchResultsLabel" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -607,8 +611,10 @@
                   <Component id="SearchButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="SearchField" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace type="separate" max="-2" attributes="0"/>
-              <Component id="SearchResults" pref="217" max="32767" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="SearchResultsLabel" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="SearchResults" pref="165" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -640,5 +646,10 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JLabel" name="SearchResultsLabel">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="ISBN | Author | Title | Due Date"/>
+      </Properties>
+    </Component>
   </SubComponents>
 </Form>
