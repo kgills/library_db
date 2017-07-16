@@ -902,7 +902,7 @@ public class LibraryApp extends javax.swing.JFrame {
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
             userID -= 1;
-            NewUserStatus.setText("Failed! Can not have duplicate SSN");
+            NewUserStatus.setText("All fields required, no duplicate SSN");
         }
 
         NewUserDialog.pack();
@@ -915,16 +915,17 @@ public class LibraryApp extends javax.swing.JFrame {
         // Update the BOOK_LOANS table
         String update = "UPDATE BOOK_LOANS "
                 + "SET Date_in =  NOW() "
-                + "WHERE Isbn = " + CheckInISBNField.getText()
+                + "WHERE Isbn = " + CheckInISBNField.getText()+" "
                 + "AND Card_id = " + CheckInUserIDField.getText() + ";";
         System.out.println(update);
 
         try {
             statement0.execute(update);
+            CheckInDialogText.setText("Book checked in!");
         } catch (SQLException ex) {
             Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
             userID -= 1;
-            NewUserStatus.setText("Failed! Can't find ISBN and Card_ID match");
+            CheckInDialogText.setText("Failed! Can't find ISBN and Card_ID match");
         }
 
         CheckInDialog.pack();
@@ -970,15 +971,18 @@ public class LibraryApp extends javax.swing.JFrame {
                 query = "SELECT COUNT(*)"
                         + "FROM BOOK_LOANS "
                         + "WHERE Card_id = " + CheckOutUserIDField.getText() + " "
-                        + "AND Date_in = NULL;";
+                        + "AND Date_in is NULL;";
                 
                 System.out.println(query);
                 bookLoansCountResultSet = statement1.executeQuery(query);
                 
                 int books = 0;
-                if (bookLoansResultSet.next()) {
-                    books = Integer.getInteger(bookLoansCountResultSet.getString(1));
+                if (bookLoansCountResultSet.next()) {
+                    String booksString = bookLoansCountResultSet.getString(1);
+                    books = Integer.parseInt(booksString);
                 }
+                
+                System.out.println("books = "+books);
                 
                 if(books > 2) {
                     CheckOutDialogText.setText("Too many books checked out");
@@ -1001,14 +1005,15 @@ public class LibraryApp extends javax.swing.JFrame {
 
                     loanID += 1;
                     CheckOutDialogText.setText("Due Date:" + dateFormat.format(dueDate.getTime()));
-                }
-                try {
-                    statement0.execute(insert);
-                    statement0.execute(fine);
-                } catch (SQLException ex) {
-                    Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
-                    loanID -= 1;
-                    CheckOutDialogText.setText("Check Out Failed!");
+                
+                    try {
+                        statement0.execute(insert);
+                        statement0.execute(fine);
+                    } catch (SQLException ex) {
+                        Logger.getLogger(LibraryApp.class.getName()).log(Level.SEVERE, null, ex);
+                        loanID -= 1;
+                        CheckOutDialogText.setText("Check Out Failed!");
+                    }
                 }
             } else {
                 // Book is not available
@@ -1111,7 +1116,7 @@ public class LibraryApp extends javax.swing.JFrame {
         double balance = 0.0;
 
         // Need to check if the books are checked out
-        query = "SELECT Loan_id, ISBN, Due_date "
+        query = "SELECT Loan_id, ISBN, Due_date, Date_in "
                 + "FROM BOOK_LOANS "
                 + "WHERE Card_id = " + FineUserIDField.getText() + ";";
         System.out.println(query);
@@ -1123,6 +1128,7 @@ public class LibraryApp extends javax.swing.JFrame {
                 String loanIDString = bookLoansResultSet.getString(1);
                 String ISBNString = bookLoansResultSet.getString(2);
                 String dueDateString = bookLoansResultSet.getString(3);
+                String Date_in = bookLoansResultSet.getString(4);
 
                 query = "SELECT Fine_amt, Paid "
                         + "FROM FINES "
@@ -1139,7 +1145,10 @@ public class LibraryApp extends javax.swing.JFrame {
                         fineAmtString = "0.00";
                     }
 
-                    if (paidString.equals("0")) {
+                    if(Date_in != null && fineAmtString.equals("0.00")) {
+                        // Book already turned in
+                        continue;
+                    } else if (paidString.equals("0")) {
                         paidString = "Due";
                     } else {
                         paidString = "Paid";
