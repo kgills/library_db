@@ -2,13 +2,13 @@
 Library database.
 
 # Building
-ant -f /home/kgills/Workspace/library_db/library_app -Dnb.internal.action.name=run run
+ant -f library_app -Dnb.internal.action.name=run run
 
 # Running
-java -jar "/home/kgills/Workspace/library_db/library_app/dist/library_app.jar"
-
-For best results building and running use the included NetBeans project.
+java -jar "library_app/dist/library_app.jar"
 
 # Dependencies
 MySQL JDBC
-mysql-connector-java-5.1.42-bin.jar
+	mysql-connector-java-5.1.42-bin.jar
+MySQL
+	Will use root user with asdflkj set as the password
