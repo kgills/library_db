@@ -1,8 +1,0 @@
-# Check Out
-Have to search Book_Loans for this book to make sure we have it
-Have to search Book_Loans to make sure this guy doesn't have more than 3 books
-
-# Check In
-
-# Fines
-Don't allow paying of fines for books that are not checked in
