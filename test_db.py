@@ -75,7 +75,6 @@ cursor.execute("""CREATE TABLE FINES (
 	 	ON DELETE CASCADE)
 """)
 
-
 # Insert some sample data
 cursor.execute("INSERT INTO BORROWER VALUES('1', '850473740', 'Mark Morgan', '5677 Coolidge Street,Plano,TX', '4699041438')")
 cursor.execute("INSERT INTO BORROWER VALUES('2', '123452688', 'Peter Parker', '123 4th ave, New York, NY', '1234567894')")
@@ -111,9 +110,6 @@ cursor.execute("INSERT INTO FINES VALUES('3', NULL, False)")
 cursor.execute("INSERT INTO FINES VALUES('4', NULL, False)")
 cursor.execute("INSERT INTO FINES VALUES('5', 1.25, False)")
 cursor.execute("INSERT INTO FINES VALUES('6', 1.25, False)")
-
-
-
 
 # Commit changes
 db.commit()

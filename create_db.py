@@ -148,6 +148,7 @@ with open(book_file, 'rb') as csvfile:
 			if(author == ""):
 				continue
 
+			# Remove parenthesis
 			author = re.sub(r"\(.*\)", "", author)
 			author = re.sub(r"\(.*", "", author)
 			author = author.lstrip()

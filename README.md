@@ -11,4 +11,4 @@ java -jar "library_app/dist/library_app.jar"
 MySQL JDBC
 	mysql-connector-java-5.1.42-bin.jar
 MySQL
-	Will use root user with asdflkj set as the password
+	Will use 'root' user with 'asdflkj' set as the password
